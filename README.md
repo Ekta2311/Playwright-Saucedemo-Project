@@ -1,89 +1,58 @@
-tagged `@authenticated`, and captures screenshots and traces for failed scenarios.
+# Sauce Demo Tests
 
-# Sauce Demo Checkout Tests
+This project tests the checkout flow on [Sauce Demo](https://www.saucedemo.com/) using
+Playwright, TypeScript, and Cucumber.
 
-Playwright, TypeScript, and Cucumber BDD tests for the public Sauce Demo storefront at
-https://www.saucedemo.com/.
+## Setup
 
-## Requirements
-
-- Node.js 20 or 22
-- npm
-- Git
-
-## Install
+Install Node.js 20 or 22, then run:
 
 ```bash
 npm ci
 npx playwright install chromium
 ```
 
-On Linux CI, install Chromium and its system dependencies with
-`npx playwright install --with-deps chromium`.
-
-## Run
+## Run Tests
 
 ```bash
-npm test                 # Create saved login state, then run the Cucumber suite
-npm run test:headed       # Run the Cucumber suite with a visible Chromium window
-npm run test:ui           # Open Playwright UI for the authentication setup spec
-npm run test:report       # Generate HTML from reports/cucumber-report.json
-npm run lint              # Run ESLint
-npm run typecheck         # Run the strict TypeScript check
-npm run format            # Format files with Prettier
+npm test
 ```
 
-`npm test` first runs `tests/auth.setup.spec.ts`, which saves browser storage under
-`playwright/.auth/`, then runs the Gherkin scenarios. The authentication state is local,
-generated on demand, and ignored by Git. The Cucumber HTML report is generated after
-the suite with `npm run test:report`; the JSON input is written to `reports/`.
+This command creates a saved login session and runs the Cucumber tests. The session is
+stored in `playwright/.auth/` and is ignored by Git.
 
-The suite currently contains a BUG-001 regression scenario that intentionally fails
-while Sauce Demo allows checkout completion with an empty cart. This is a confirmed
-application defect, not a framework failure; `npm test` therefore exits non-zero until
-the defect is fixed. The test report records the failure.
+Optional checks and report generation:
 
-## Project structure
+```bash
+npx eslint .
+npx tsc --noEmit
+node scripts/generate-report.cjs
+```
 
-`features/` contains the checkout Gherkin scenarios and their TypeScript step
-definitions. `pages/` holds Page Object Model classes for login, inventory, cart, and
-checkout. `features/support/` creates an isolated browser context per scenario, restores
-saved authentication for `@authenticated` scenarios, and captures screenshots and
-traces for failures. `tests/auth.setup.spec.ts` creates reusable browser state;
-`scripts/generate-report.cjs` converts the Cucumber JSON output to HTML; `.github/`
-contains the CI workflow; `TEST_CASES.md` and `BUGS.md` contain the manual QA artifacts.
+Run the report command after `npm test` to create `reports/cucumber-report.html` from
+the Cucumber JSON report.
 
-## Design decisions
+## Project Files
 
-Cucumber keeps the user-facing flow readable and allows scenario outlines for
-parameterized authentication checks. Step definitions map the Gherkin steps to
-web-first Playwright assertions and actions, while page objects own reusable locators
-and interactions. The happy path logs in through the UI because authentication is part
-of that scenario; other authenticated scenarios reuse captured storage state. The
-framework currently targets Chromium, uses CI-only retries and parallel execution, and
-collects screenshots and traces on failure. A separate Playwright Test setup spec is
-used for state generation; the checkout scenarios themselves run through Cucumber.
+Gherkin scenarios are in `features/checkout.feature`; their TypeScript steps are in
+`features/step-definitions/`. The `pages/` folder contains page objects for login,
+products, cart, and checkout. `features/support/` sets up each browser context and saves
+screenshots and traces for failed scenarios. `tests/auth.setup.spec.ts` creates the
+saved login session. Manual test cases are in `saucedemo-test-cases.md`, and the defect
+report is in `BUGS.md`.
 
-## BUG-001 Regression
+## Design
 
-The tagged `@BUG-001` scenario starts with an authenticated empty cart, attempts checkout
-with valid customer information, and asserts that the flow is blocked with a message or
-cart redirect rather than reaching order confirmation. It currently fails because the
-application displays the order confirmation for an empty cart. Reproduction details and
-the screenshot/trace are recorded in [BUGS.md](BUGS.md).
+Cucumber makes the checkout steps readable, and page objects keep shared page actions
+in one place. The purchase scenario logs in through the UI; the other authenticated
+scenarios reuse saved browser state. The project currently runs on Chromium.
 
-## Known limitations
+## Known Issues
 
-- Chromium is the only configured browser; Firefox and WebKit are not covered.
-- Sauce Demo is a public demo application and may change or become unavailable.
-- The confirmed BUG-001 scenario makes the full suite red until the application defect
-  is fixed; keep this expected failure visible when reviewing CI results.
-- Complete and verify the manual exploratory-session duration, execution statuses, and
-  any remaining environment details in [BUGS.md](BUGS.md) and [TEST_CASES.md](TEST_CASES.md)
-  before submitting the QA deliverables.
-- The Playwright UI script opens the authentication setup spec, not the Cucumber suite.
-
-## Repository hygiene
-
-Commit `package-lock.json` and the BUG-001 screenshot/trace referenced in `BUGS.md`.
-Do not commit `node_modules/`, generated reports, or `playwright/.auth/` state files.
+- The `@BUG-001` test is expected to fail while Sauce Demo allows an order to be
+  completed with an empty cart. The failure confirms the reported application defect.
+- The GitHub Actions workflow refers to npm scripts that are not currently defined in
+  `package.json`. Update the workflow or add the missing scripts before relying on CI.
+- Complete the manual exploratory-session details and test execution results in the QA
+  documents before submitting them.
+- Firefox and WebKit are not configured.
