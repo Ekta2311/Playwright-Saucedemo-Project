@@ -1,0 +1,51 @@
+name: Playwright BDD Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  bdd:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Check TypeScript
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run BDD scenarios
+        run: npm test
+
+      - name: Generate HTML report
+        if: always()
+        run: npm run test:report
+
+      - name: Upload reports and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bdd-test-results
+          path: |
+            reports/
+            evidence/
+            playwright-report/
+          retention-days: 14
+          if-no-files-found: warn

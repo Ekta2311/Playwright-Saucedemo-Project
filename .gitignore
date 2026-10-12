@@ -1,0 +1,12 @@
+node_modules/
+reports/
+evidence/
+!evidence/
+evidence/*
+!evidence/BUG_IMG.png
+!evidence/Empty-cart-checkout-does-not-complete-an-order-trace.zip
+playwright/.auth/
+playwright-report/
+test-results/
+.env
+.DS_Store

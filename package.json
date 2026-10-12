@@ -1,0 +1,26 @@
+{
+  "name": "saucedemo-playwright-bdd-typescript",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sauce Demo BDD tests using Playwright, TypeScript and Cucumber",
+  "scripts": {
+    "auth:setup": "playwright test --project=setup",
+    "test:run": "cucumber-js",
+    "test": "npm run auth:setup && npm run test:run"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "latest",
+    "@eslint/js": "latest",
+    "@playwright/test": "latest",
+    "@types/node": "latest",
+    "cross-env": "latest",
+    "cucumber-html-reporter": "latest",
+    "eslint": "latest",
+    "globals": "latest",
+    "playwright": "latest",
+    "prettier": "latest",
+    "ts-node": "latest",
+    "typescript": "latest",
+    "typescript-eslint": "latest"
+  }
+}
